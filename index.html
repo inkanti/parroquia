@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Festival Gastronómico - Parroquia Montesinos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #ff6b35;
+            --secondary: #f7c59f;
+            --dark: #2d3436;
+            --light: #ffffff;
+            --success: #27ae60;
+            --gray: #bdc3c7;
+            --bg-light: #f9f9f9;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg-light); color: var(--dark); }
+
+        /* HEADER */
+        header {
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            height: 60vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+        }
+
+        h1 { font-size: 3rem; margin-bottom: 10px; text-transform: uppercase; }
+        p.subtitle { font-size: 1.2rem; margin-bottom: 20px; color: var(--secondary); }
+
+        .btn-cta {
+            padding: 15px 30px;
+            background-color: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border: none;
+        }
+
+        /* MENU SECTION */
+        .menu-section { padding: 50px 20px; max-width: 1200px; margin: 0 auto; }
+        .section-title { text-align: center; font-size: 2rem; margin-bottom: 40px; color: var(--primary); }
+
+        .grid-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        /* TARJETAS */
+        .card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 1px solid #eee;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .card.visible { opacity: 1; transform: translateY(0); }
+        .card-img { height: 180px; width: 100%; object-fit: cover; }
+        .card-body { padding: 20px; }
+        .card-title { font-size: 1.3rem; margin-bottom: 5px; font-weight: 700; }
+        .card-desc { font-size: 0.9rem; color: #666; margin-bottom: 15px; line-height: 1.4; }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            background: #fdfdfd;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #f0f0f0;
+        }
+
+        .price { font-size: 1.4rem; font-weight: bold; color: var(--primary); }
+
+        .controls-wrapper { display: flex; align-items: center; gap: 10px; }
+        .qty-label { font-size: 0.8rem; font-weight: bold; color: #555; text-transform: uppercase; }
+        .qty-btn { width: 35px; height: 35px; border: none; border-radius: 8px; font-size: 1.2rem; font-weight: bold; display: flex; justify-content: center; align-items: center; }
+        .btn-minus { background-color: var(--gray); color: white; }
+        .btn-plus { background-color: var(--success); color: white; }
+        .qty-display { font-size: 1.2rem; font-weight: bold; width: 20px; text-align: center; }
+
+        .add-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px;
+            background-color: var(--dark);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: background 0.3s;
+        }
+        .add-btn.active { background-color: var(--primary); }
+
+        /* BOTÓN FLOTANTE */
+        .cart-float {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--primary);
+            color: white;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        .cart-count {
+            position: absolute;
+            top: 0; right: 0;
+            background: red;
+            color: white;
+            font-size: 1rem;
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid white;
+            font-weight: bold;
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--dark); }
+        .input-group input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; }
+        .input-group input:focus { border-color: var(--primary); outline: none; }
+        .cart-item { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 12px 0; font-size: 1rem; }
+        .total-price { font-size: 1.5rem; font-weight: bold; text-align: right; margin-top: 20px; color: var(--dark); }
+        .checkout-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: #25D366;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .checkout-btn:disabled { background-color: #ccc; color: #666; }
+        .close-modal { background: none; border: none; width: 100%; margin-top: 15px; padding: 10px; color: #666; font-size: 1rem; }
+
+        /* --- NUEVA SECCIÓN DE AGRADECIMIENTO Y CAUSA --- */
+        .cause-section {
+            background-color: white;
+            padding: 60px 20px;
+            text-align: center;
+            border-top: 5px solid var(--primary);
+        }
+
+        .cause-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .cause-title {
+            font-size: 2rem;
+            color: var(--dark);
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .cause-text {
+            font-size: 1.1rem;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+
+        .cause-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .cause-item {
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 15px;
+            transition: transform 0.3s;
+        }
+
+        .cause-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .cause-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .cause-item h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+
+        .cause-item p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .footer-thanks {
+            margin-top: 50px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .footer-thanks i {
+            color: red;
+            animation: heartbeat 1.5s infinite;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 2rem; }
+            .grid-menu { grid-template-columns: 1fr; }
+            .cause-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Parroquia Montesinos</h1>
+        <p class="subtitle">Festival Gastronómico Familiar</p>
+        <button class="btn-cta" onclick="document.getElementById('menu').scrollIntoView({behavior: 'smooth'})">Ver Platos Disponibles</button>
+    </header>
+
+    <section id="menu" class="menu-section">
+        <h2 class="section-title">Seleccione su pedido</h2>
+        <div class="grid-menu" id="products-container"></div>
+    </section>
+
+    <!-- NUEVA SECCIÓN: CAUSA Y AGRADECIMIENTO -->
+    <section class="cause-section">
+        <div class="cause-container">
+            <h2 class="cause-title">Tu Aporte Hace la Diferencia</h2>
+            <p class="cause-text">
+                Gracias por participar en nuestro festival gastronómico. 
+                Todos los fondos recaudados en este evento serán destinados exclusivamente al 
+                <strong>mantenimiento de nuestra iglesia</strong> y a las <strong>obras sociales</strong> que realizamos para la comunidad.
+                ¡Al disfrutar de nuestra comida, estás ayudando a construir un mejor hogar para todos!
+            </p>
+
+            <div class="cause-grid">
+                <div class="cause-item">
+                    <i class="fas fa-church cause-icon"></i>
+                    <h3>Mantenimiento</h3>
+                    <p>Reparación y cuidado de nuestro templo para seguir celebrando juntos.</p>
+                </div>
+                <div class="cause-item">
+                    <i class="fas fa-hands-helping cause-icon"></i>
+                    <h3>Obras Sociales</h3>
+                    <p>Ayuda a familias necesitadas y programas de apoyo comunitario.</p>
+                </div>
+                <div class="cause-item">
+                    <i class="fas fa-heart cause-icon"></i>
+                    <h3>Comunidad</h3>
+                    <p>Fomentando la unión y el espíritu de solidaridad parroquial.</p>
+                </div>
+            </div>
+
+            <div class="footer-thanks">
+                ¡Gracias por tu generosidad y confianza! <i class="fas fa-heart"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- Botón Flotante -->
+    <div class="cart-float" onclick="toggleCart()">
+        <i class="fas fa-shopping-basket"></i>
+        <span class="cart-count" id="cart-count">0</span>
+    </div>
+
+    <!-- Modal del Carrito -->
+    <div class="modal-overlay" id="cart-modal">
+        <div class="modal-content">
+            <h2 style="text-align:center; margin-bottom:20px;">Resumen del Pedido</h2>
+            
+            <div class="input-group">
+                <label for="customer-name">¿Quién hace el pedido? (Nombre Completo):</label>
+                <input type="text" id="customer-name" placeholder="Ej: María Pérez">
+            </div>
+
+            <div id="cart-items"></div>
+            
+            <div class="total-price">Total a Pagar: $<span id="cart-total">0.00</span></div>
+            
+            <button class="checkout-btn" id="btn-whatsapp" onclick="sendToWhatsapp()" disabled>
+                <i class="fab fa-whatsapp"></i> Enviar Pedido
+            </button>
+            
+            <button class="close-modal" onclick="toggleCart()">Seguir eligiendo platos</button>
+        </div>
+    </div>
+
+    <script>
+        const products = [
+            { id: 1, name: "Sopa de gallina", desc: "sopa gallina", price: 5.00, img: "sopa_gallina.jpeg" },
+            { id: 2, name: "Pollo asado", desc: "arroz, ensalada fresca y dos tortillas.", price: 3.50, img: "pollo_asado.jpeg" },
+            { id: 3, name: "Panes con pollo", desc: "Panes con pollo", price: 3.00, img: "panes_pollo.jpeg" },
+            { id: 4, name: "Carne asada", desc: "Carne asada, arroz, chimol y dos tortillas.", price: 3.50, img: "carne_asada.jpeg" },
+            { id: 5, name: "Tamales de elote", desc: "Tamales de elote (3 x $1).", price: 1.00, img: "tamales_elote.jpeg" },
+            { id: 6, name: "Atol de elote", desc: "Atol de elote.", price: 0.50, img: "atol_elote.jpeg" },
+            { id: 7, name: "Tortas de elote", desc: "Tortas de elote.", price: 0.60, img: "tortas_elote.jpeg" },
+            { id: 8, name: "Empanadas de plátano", desc: "Empanadas de plátano.", price: 0.35, img: "empanadas.jpeg" },
+            { id: 9, name: "Enchiladas", desc: "Enchiladas.", price: 1.00, img: "enchiladas.jpeg" },
+            { id: 10, name: "Riguas", desc: "Riguas.", price: 1.00, img: "riguas.jpeg" },
+            { id: 11, name: "Pastelitos", desc: "Pastelitos 3x$1.", price: 1.00, img: "pastelitos.jpeg" },
+            { id: 12, name: "Pupusas", desc: "Pupusas revueltas y frijol con queso.", price: 0.60, img: "pupusas.jpeg" },
+            { id: 12, name: "Pupusas", desc: "Pupusas de queso.", price: 0.75, img: "pupusas.jpeg" },
+            { id: 12, name: "Pupusas", desc: "Pupusas especialidad.", price: 0.75, img: "pupusas.jpeg" }
+           /* { id: 13, name: "Suspiro a la Limeña", desc: "Postre tradicional dulce de leche.", price: 5.00, img: "riguas.jpeg" },
+            { id: 14, name: "Suspiro a la Limeña", desc: "Postre tradicional dulce de leche.", price: 5.00, img: "riguas.jpeg" },
+            { id: 15, name: "Suspiro a la Limeña", desc: "Postre tradicional dulce de leche.", price: 5.00, img: "riguas.jpeg" }
+                */
+        ];
+
+        let cart = {}; 
+
+        function renderProducts() {
+            const container = document.getElementById('products-container');
+            container.innerHTML = '';
+
+            products.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <img src="${product.img}" alt="${product.name}" class="card-img">
+                    <div class="card-body">
+                        <h3 class="card-title">${product.name}</h3>
+                        <p class="card-desc">${product.desc}</p>
+                        <div class="price-row">
+                            <span class="price">$${product.price.toFixed(2)}</span>
+                            <div class="controls-wrapper">
+                                <span class="qty-label">Cantidad:</span>
+                                <button class="qty-btn btn-minus" onclick="updateQty(${product.id}, -1)">-</button>
+                                <span class="qty-display" id="qty-${product.id}">0</span>
+                                <button class="qty-btn btn-plus" onclick="updateQty(${product.id}, 1)">+</button>
+                            </div>
+                        </div>
+                        <button class="add-btn" id="btn-${product.id}" onclick="addToCartVisual(${product.id})">AGREGAR AL PEDIDO</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            
+            setTimeout(() => {
+                document.querySelectorAll('.card').forEach((el, index) => {
+                    setTimeout(() => el.classList.add('visible'), index * 100);
+                });
+            }, 100);
+        }
+
+        function updateQty(id, change) {
+            if (!cart[id]) cart[id] = 0;
+            cart[id] += change;
+            if (cart[id] < 0) cart[id] = 0;
+
+            document.getElementById(`qty-${id}`).innerText = cart[id];
+            
+            const btn = document.getElementById(`btn-${id}`);
+            if(cart[id] > 0) {
+                btn.innerText = "AÑADIDO ✓";
+                btn.classList.add("active");
+            } else {
+                btn.innerText = "AGREGAR AL PEDIDO";
+                btn.classList.remove("active");
+            }
+            updateCartCount();
+        }
+
+        function addToCartVisual(id) {
+            if(cart[id] === 0 || !cart[id]) {
+                updateQty(id, 1);
+            }
+        }
+
+        function updateCartCount() {
+            let totalItems = 0;
+            for (let key in cart) { totalItems += cart[key]; }
+            document.getElementById('cart-count').innerText = totalItems;
+            validateCheckout();
+        }
+
+        function toggleCart() {
+            const modal = document.getElementById('cart-modal');
+            const nameInput = document.getElementById('customer-name');
+            
+            if (modal.style.display === 'flex') {
+                modal.style.display = 'none';
+            } else {
+                renderCartModal();
+                modal.style.display = 'flex';
+                setTimeout(() => nameInput.focus(), 100);
+            }
+        }
+
+        function renderCartModal() {
+            const container = document.getElementById('cart-items');
+            const totalSpan = document.getElementById('cart-total');
+            container.innerHTML = '';
+            
+            let total = 0;
+            let hasItems = false;
+
+            products.forEach(prod => {
+                if (cart[prod.id] && cart[prod.id] > 0) {
+                    hasItems = true;
+                    const subtotal = prod.price * cart[prod.id];
+                    total += subtotal;
+                    
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'cart-item';
+                    itemDiv.innerHTML = `
+                        <span><b>${cart[prod.id]}x</b> ${prod.name}</span>
+                        <span>$${subtotal.toFixed(2)}</span>
+                    `;
+                    container.appendChild(itemDiv);
+                }
+            });
+
+            if (!hasItems) {
+                container.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">No ha seleccionado ningún plato aún.</p>';
+            }
+
+            totalSpan.innerText = total.toFixed(2);
+            validateCheckout();
+        }
+
+        function validateCheckout() {
+            const btn = document.getElementById('btn-whatsapp');
+            const nameInput = document.getElementById('customer-name');
+            const nameValue = nameInput.value.trim();
+            
+            let totalItems = 0;
+            for (let key in cart) { totalItems += cart[key]; }
+
+            if (totalItems > 0 && nameValue.length > 0) {
+                btn.disabled = false;
+                btn.style.opacity = "1";
+            } else {
+                btn.disabled = true;
+                btn.style.opacity = "0.6";
+            }
+        }
+
+        document.getElementById('customer-name').addEventListener('input', validateCheckout);
+
+        function sendToWhatsapp() {
+            const nameInput = document.getElementById('customer-name');
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                alert("Por favor, escriba su nombre antes de enviar.");
+                return;
+            }
+
+            let message = `*PEDIDO PARROQUIA MONTESINOS*%0A`;
+            message += `👤 *Cliente:* ${name}%0A`;
+            message += `---------------------------%0A`;
+            
+            let total = 0;
+            let hasItems = false;
+
+            products.forEach(prod => {
+                if (cart[prod.id] && cart[prod.id] > 0) {
+                    hasItems = true;
+                    const subtotal = prod.price * cart[prod.id];
+                    total += subtotal;
+                    message += `▪️ ${cart[prod.id]}x ${prod.name} ($${subtotal})%0A`;
+                }
+            });
+
+            if (!hasItems) {
+                alert("El carrito está vacío.");
+                return;
+            }
+
+            message += `---------------------------%0A`;
+            message += `💰 *TOTAL: $${total.toFixed(2)}*`;
+            message += `%0A%0A¡Gracias por apoyar a nuestra parroquia!`;
+
+            const phoneNumber = "61280902"; // CAMBIAR POR EL REAL
+            window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
+        }
+
+        renderProducts();
+    </script>
+</body>
+</html>
